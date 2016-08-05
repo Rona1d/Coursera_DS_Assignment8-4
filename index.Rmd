@@ -1,5 +1,5 @@
 ---
-title: "Activity tracking"
+title: "Activity tracking: Predicting correctly performed exercises"
 author: "Rona1d"
 date: "august 6, 2016"
 output:
@@ -8,25 +8,24 @@ output:
   pdf_document: default
 ---
 
-```{r Loading_packages}
+```{r Loading_packages, warning=FALSE}
 library(caret)
 ```
 ### Introduction
 
-*This report was written in fulfillment of the assignment of week 4 of the 'Machine Learning' course within the Coursera specialization track 'Data Science'. Goal of this assignment is to investigate activity {lorem ipsum}.
+*This report was written in fulfillment of the assignment of week 4 of the 'Practical Machine Learning' course within the Coursera specialization track 'Data Science'.*
 
-The main questions we want to answer is: "Can we predict which activity is performed based on accellorometer data?"
+Using devices such as *Jawbone Up*, *Nike FuelBand*, and *Fitbit* it is now possible to collect a large amount of data about personal activity relatively inexpensively. In this report data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants performing exercises is used. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways (more information is available [here](http://groupware.les.inf.puc-rio.br/har) (see the section on the Weight Lifting Exercise Dataset)). Goal of this assignment is, by looking at the data, to predict in which way the exercises were performed. 
 
 ### Executive summary
 
+Having analysed the data with machine learning techniques, we were able to accurately predict which type of exercise was performed. In particular the *Random Forest* model performed very well with an accuracy of 99.6%
 
-
-### Downloading and exploring data
-For this research we will be using data on exercices provided through the Coursera course website. The data is devided in a training and test set.
-
+### Getting and cleaning data
+For this research we will be using data on exercises provided through the Coursera course website. The data is devided in a training and test set.
 
 ```{r}
-#testing changes...
+
 # First, make sure a folder named 'data' exists
 
 if(!file.exists("data")) {
@@ -38,8 +37,6 @@ setwd("./data")
 
 fileURL1 <- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"
 fileURL2 <- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv"
-
-# You need this piece of code for knitting Rmd doc: setInternet2(use = TRUE)
 
 if(!file.exists("HAT_traindata.csv")) {
         download.file(fileURL1, "./HAT_traindata.csv")
@@ -53,4 +50,43 @@ if(!file.exists("HAT_testdata.csv")) {
 
 trainset <- read.csv("HAT_traindata.csv", na.strings=c(""," ","NA"))
 valset <- read.csv("HAT_testdata.csv")
+```
+
+The data in the trainset (`r nrow(trainset)` rows and `r ncol(trainset)` columns) shows a lot of colums with a lot of missing values. To be specific columns with more than 95% of NA's will be deleted from the dataset as they are of little use (Please consult the Appendix for more detailed information about the variables). Note that the first 7 columns in the dataset are not providing much useful data either so those too wil be deleted.
+
+```{r cleaning_data}
+trainset2 <- trainset[,colSums(is.na(trainset))<(nrow(trainset)*0.95)]
+trainset3 <- subset(trainset2, select=-c(1:7)); rm(trainset2)
+```
+
+The final input dataset now has 'only' `r ncol(trainset3)` columns left. To be able to perform cross validation on any model to be built, the dataset has to partitioned into a training set (80%) and a testing set (20%).
+
+```{r partitioning_dataset}
+set.seed(1234)
+inTrain = createDataPartition(trainset3$classe, p = 0.8)[[1]]
+training = trainset3[ inTrain,]
+testing = trainset3[-inTrain,]
+```
+
+### Choosing and running models
+(intro nodig over wat handig is)
+For sake of comparison, 3 different models will be tried: a *Random Forest* algorithm ("rf"), *Stochastic Gradient Boosting* ("gbm"), and *Linear Discriminant Analysis* ("lda") -> nee, CART (rpart)
+
+
+### Model performance
+
+
+
+
+### Running the model on the validation set
+
+
+***
+
+\newpage
+
+### Appendix
+
+```{r Explore variables in dataset}
+str(trainset)
 ```

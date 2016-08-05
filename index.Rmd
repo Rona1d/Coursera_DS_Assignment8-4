@@ -26,7 +26,7 @@ For this research we will be using data on exercices provided through the Course
 
 
 ```{r}
-
+#testing changes...
 # First, make sure a folder named 'data' exists
 
 if(!file.exists("data")) {

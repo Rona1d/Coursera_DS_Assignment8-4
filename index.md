@@ -29,12 +29,16 @@ library(caret)
 The main questions we want to answer is: "Can we predict which activity is performed based on accellorometer data?"
 
 ### Executive summary
+
+
+
 ### Downloading and exploring data
 For this research we will be using data on exercices provided through the Coursera course website. The data is devided in a training and test set.
 
 
 
 ```r
+#testing changes...
 # First, make sure a folder named 'data' exists
 
 if(!file.exists("data")) {

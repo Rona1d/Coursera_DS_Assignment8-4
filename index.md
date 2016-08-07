@@ -1,18 +1,10 @@
-# Activity tracking: Predicting correctly performed exercises
+# Activity tracking: Predicting exercise execution
 Rona1d  
 august 6, 2016  
 
 
 ```r
 library(caret)
-```
-
-```
-## Loading required package: lattice
-```
-
-```
-## Loading required package: ggplot2
 ```
 ### Introduction
 
@@ -30,14 +22,12 @@ For this research we will be using data on exercises provided through the Course
 
 ```r
 # First, make sure a folder named 'data' exists
-
 if(!file.exists("data")) {
         dir.create("data")
 }
 setwd("./data")
 
 # Downloading file...
-
 fileURL1 <- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"
 fileURL2 <- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv"
 
@@ -50,12 +40,11 @@ if(!file.exists("HAT_testdata.csv")) {
 
 # A quick preliminary scan of the data reveiled variables with a lot of blanks.
 # It is therefore wise to name the blanks as 'NA' in the read.csv step
-
 trainset <- read.csv("HAT_traindata.csv", na.strings=c(""," ","NA"))
 valset <- read.csv("HAT_testdata.csv")
 ```
 
-The data in the trainset (19622 rows and 160 columns) shows a lot of colums with a lot of missing values. To be specific columns with more than 95% of NA's will be deleted from the dataset as they are of little use (Please consult the Appendix for more detailed information about the variables). Note that the first 7 columns in the dataset are not providing much useful data either so those too wil be deleted.
+The data in the trainset (19622 rows and 160 columns) shows a lot of colums with a lot of missing values. To be specific, columns with more than 95% of NA's will be deleted from the dataset as they are of little use (please consult the Appendix for more detailed information about the variables). Note that the first 7 columns in the dataset are not providing much useful data either so those too wil be deleted.
 
 
 ```r
@@ -74,19 +63,38 @@ testing = trainset3[-inTrain,]
 ```
 
 ### Choosing and running models
-(intro nodig over wat handig is)
-For sake of comparison, 3 different models will be tried: a *Random Forest* algorithm ("rf"), *Stochastic Gradient Boosting* ("gbm"), and *Linear Discriminant Analysis* ("lda") -> nee, CART (rpart)
+The first choice for a model would be a *Random Forest* algorithm ("rf"). This type of model is very good for classification problems like the one in this report. It also, in general, outperforms (generalised) linear models when the relation between variables in a dataset is non-linear. For sake of comparison, a *Stochastic Gradient Boosting* ("gbm") model, which is another type of model based on decision trees, will also be fit on the dataset.
 
+
+```r
+#fit1 <- train(classe~., method = "rf", data=training); save(fit1, file = "fit1.RData")
+#fit2 <- train(classe~., method = "gbm", data=training); save(fit2, file = "fit2.RData")
+#Note that the above fit will need to run when not run before. 
+#Once these fits are saved, one can pull the models from memory with the 'load' statement
+load(file = "fit1.RData")
+load(file = "fit2.RData")
+```
 
 ### Model performance
 
+By predicting the fit models on the test dataset, the model performance can be established. Accuracy is measured by comparing the predicted values to the actual values in the test dataset.
 
 
+```r
+p1 <- predict(fit1, training)
+p2 <- predict(fit2, training)
+p3 <- predict(fit1, testing)
+p4 <- predict(fit2, testing)
 
-### Running the model on the validation set
+c1 <- confusionMatrix(p1, training$classe)
+c2 <- confusionMatrix(p2, training$classe)
+c3 <- confusionMatrix(p3, testing$classe)
+c4 <- confusionMatrix(p4, testing$classe)
+```
 
-
-***
+On the training set, the rf model performs outstanding with an accuracy of 100%. The gbm model also has a high accuracy (97.4%) on the training set, but underperforms to the rf. The model to go with would therefore be the rf model.
+Performing cross-validation on the testset, the rf model still perfoms very good with aan accuracy of 99.6%  which translates to an out of sample error rate of 0.4% (please refer to the Appendix for the model results). 
+Combining both of the predictors would in general be a way to further increase accuracy, but with the current model accuracy of 99,6% that is not deemed necessary. The fitted rf model would therefore be the model of choice for predicting the performed exercises.
 
 \newpage
 
@@ -94,7 +102,7 @@ For sake of comparison, 3 different models will be tried: a *Random Forest* algo
 
 
 ```r
-str(trainset)
+str(trainset) # Below an overview of variables in the initial dataset
 ```
 
 ```
@@ -199,4 +207,67 @@ str(trainset)
 ##  $ min_yaw_dumbbell        : Factor w/ 72 levels "-0.1","-0.2",..: NA NA NA NA NA NA NA NA NA NA ...
 ##  $ amplitude_roll_dumbbell : num  NA NA NA NA NA NA NA NA NA NA ...
 ##   [list output truncated]
+```
+
+\newpage
+
+
+```r
+c1$overall # Accuracy of the Random Forest model on the training set
+```
+
+```
+##       Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull 
+##      1.0000000      1.0000000      0.9997651      1.0000000      0.2843493 
+## AccuracyPValue  McnemarPValue 
+##      0.0000000            NaN
+```
+
+```r
+c2$overall # Accuracy of the Stochastic Gradient Boosting model on the training set
+```
+
+```
+##       Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull 
+##   9.743933e-01   9.676052e-01   9.718009e-01   9.768078e-01   2.843493e-01 
+## AccuracyPValue  McnemarPValue 
+##   0.000000e+00   1.477962e-13
+```
+
+```r
+c3 # Confusion Matrix and Statistics for the Random Forest model on the test set
+```
+
+```
+## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction    A    B    C    D    E
+##          A 1116    5    0    0    0
+##          B    0  752    3    0    0
+##          C    0    2  680    3    0
+##          D    0    0    1  640    1
+##          E    0    0    0    0  720
+## 
+## Overall Statistics
+##                                           
+##                Accuracy : 0.9962          
+##                  95% CI : (0.9937, 0.9979)
+##     No Information Rate : 0.2845          
+##     P-Value [Acc > NIR] : < 2.2e-16       
+##                                           
+##                   Kappa : 0.9952          
+##  Mcnemar's Test P-Value : NA              
+## 
+## Statistics by Class:
+## 
+##                      Class: A Class: B Class: C Class: D Class: E
+## Sensitivity            1.0000   0.9908   0.9942   0.9953   0.9986
+## Specificity            0.9982   0.9991   0.9985   0.9994   1.0000
+## Pos Pred Value         0.9955   0.9960   0.9927   0.9969   1.0000
+## Neg Pred Value         1.0000   0.9978   0.9988   0.9991   0.9997
+## Prevalence             0.2845   0.1935   0.1744   0.1639   0.1838
+## Detection Rate         0.2845   0.1917   0.1733   0.1631   0.1835
+## Detection Prevalence   0.2858   0.1925   0.1746   0.1637   0.1835
+## Balanced Accuracy      0.9991   0.9949   0.9963   0.9974   0.9993
 ```
